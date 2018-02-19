@@ -1,0 +1,14 @@
+﻿<add name='TestProcess' read-only='false'>
+  <entities>
+    <add name='TestData'>
+      <rows>
+        <add vin='11111111111111111' />
+        <add vin='2LMDJ6JK0FBL33226' />
+        <add vin='JM1BK323071624570' />
+      </rows>
+      <fields>
+        <add name='vin' primary-key='true' />
+      </fields>
+    </add>
+  </entities>
+</add>
