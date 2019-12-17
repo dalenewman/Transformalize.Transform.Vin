@@ -18,21 +18,22 @@
 
 using System.Linq;
 using Autofac;
-using BootStrapper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Transformalize.Configuration;
+using Transformalize.Containers.Autofac;
 using Transformalize.Contracts;
 using Transformalize.Providers.Console;
+using Transformalize.Transforms.Vin.Autofac;
 
 namespace UnitTests {
 
-    [TestClass]
-    public class Test {
+   [TestClass]
+   public class Test {
 
-        [TestMethod]
-        public void BasicTests() {
+      [TestMethod]
+      public void BasicTests() {
 
-            var xml = $@"
+         var xml = $@"
 <add name='TestProcess' read-only='false'>
     <entities>
         <add name='TestData'>
@@ -53,32 +54,28 @@ namespace UnitTests {
     </entities>
 
 </add>";
-            using (var outer = new ConfigurationContainer().CreateScope(xml)) {
-                using (var inner = new TestContainer().CreateScope(outer, new ConsoleLogger(LogLevel.Debug))) {
+         var logger = new ConsoleLogger(LogLevel.Debug);
+         using (var outer = new ConfigurationContainer( new VinModule() ).CreateScope(xml, logger)) {
+            var process = outer.Resolve<Process>();
+            using (var inner = new Container( new VinModule()).CreateScope(process, logger)) {
 
-                    var process = inner.Resolve<Process>();
-                  
-                    var controller = inner.Resolve<IProcessController>();
-                    controller.Execute();
-                    var rows = process.Entities.First().Rows;
+               var controller = inner.Resolve<IProcessController>();
+               controller.Execute();
+               var rows = process.Entities.First().Rows;
 
-                    Assert.AreEqual(true, rows[0]["valid"]);
-                    Assert.AreEqual(true, rows[1]["valid"]);
-                    Assert.AreEqual(false, rows[2]["valid"]);
+               Assert.AreEqual(true, rows[0]["valid"]);
+               Assert.AreEqual(true, rows[1]["valid"]);
+               Assert.AreEqual(false, rows[2]["valid"]);
 
-                    Assert.AreEqual((short)2001, rows[0]["year"]);
-                    Assert.AreEqual((short)2015, rows[1]["year"]);
-                    Assert.AreEqual((short)2007, rows[2]["year"]);
+               Assert.AreEqual((short)2001, rows[0]["year"]);
+               Assert.AreEqual((short)2015, rows[1]["year"]);
+               Assert.AreEqual((short)2007, rows[2]["year"]);
 
-                    Assert.AreEqual("", rows[0]["make"]);
-                    Assert.AreEqual("Lincoln", rows[1]["make"]);
-                    Assert.AreEqual("Mazda", rows[2]["make"]);
-                   
-                }
+               Assert.AreEqual("", rows[0]["make"]);
+               Assert.AreEqual("Lincoln", rows[1]["make"]);
+               Assert.AreEqual("Mazda", rows[2]["make"]);
             }
-
-
-
-        }
-    }
+         }
+      }
+   }
 }
